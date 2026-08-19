@@ -33,5 +33,49 @@ document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('�
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredPrompt=e; document.getElementById('installBtn').hidden=false;});
 document.getElementById('installBtn').addEventListener('click',async()=>{if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; document.getElementById('installBtn').hidden=true;});
 window.addEventListener('online',()=>document.getElementById('offlineState').textContent='オンライン'); window.addEventListener('offline',()=>document.getElementById('offlineState').textContent='オフライン');
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 renderAll();
+
+// ---- PWA auto-update -------------------------------------------------------
+// Always check the service worker script from the network. When a new worker
+// takes control, reload once so the user immediately sees the latest UI.
+if ("serviceWorker" in navigator) {
+  let refreshing = false;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
+  navigator.serviceWorker.addEventListener("message", event => {
+    if (event.data?.type === "APP_UPDATED") {
+      toast("最新版に更新しました");
+    }
+  });
+
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("./sw.js", {
+        updateViaCache: "none"
+      });
+
+      // Check immediately on every app launch/open.
+      await registration.update();
+
+      registration.addEventListener("updatefound", () => {
+        const worker = registration.installing;
+        if (!worker) return;
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed" && navigator.serviceWorker.controller) {
+            worker.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      });
+
+      // Re-check periodically while the app remains open.
+      setInterval(() => registration.update().catch(() => {}), 60 * 60 * 1000);
+    } catch (error) {
+      console.warn("Service Worker registration failed:", error);
+    }
+  });
+}

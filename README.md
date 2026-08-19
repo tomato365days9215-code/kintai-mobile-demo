@@ -1,24 +1,28 @@
-# KINTAI PRO Demo UI
+# KINTAI PRO Demo UI - Auto Update PWA
 
-製品版とは分離した、モバイルデモ専用のPWA改良版です。
+製品版とは分離した、モバイルデモ専用PWAの自動更新対応版です。
 
-## 主な改善点
-- 製品らしいブランド感のあるUI
-- 出勤 / 退勤を最優先にした大きなアクションボタン
-- 今日の勤務状況を最上部に集約
-- 月次サマリーカード
-- 最近の打刻タイムライン
-- 勤務履歴のカードUI
-- 各種申請フォーム
-- スマホ下部ナビ
-- PWA / オフライン対応
-- 位置情報付き打刻
+## 自動更新の改善
+- Service Worker の `skipWaiting()` で新バージョンを即時有効化
+- `clients.claim()` で開いている画面を新Workerの制御下へ移行
+- 起動時に `registration.update()` で必ず更新確認
+- `updateViaCache: "none"` で `sw.js` 自体を古いHTTPキャッシュから取得しない
+- 新Workerが制御を開始したらアプリを1度だけ自動再読み込み
+- 古いバージョンのCache Storageを自動削除
+- オンライン時はHTML/CSS/JSをnetwork-firstで取得し、オフライン時だけキャッシュへフォールバック
 
-## 使い方
-HTTPS環境に配置して利用してください。
-GitHub Pages / Netlify / Cloudflare Pages / Vercel などで公開すると、4G/5Gでも動作します。
+## GitHub Pagesでの更新方法
+既存リポジトリのルートにある以下のファイルを、このZIP内の同名ファイルで置き換えてコミットしてください。
 
-## 注意
-- データはブラウザの localStorage に保存されます。
-- GPSは端末とブラウザの許可が必要です。
-- この版はデモ用であり、サーバーDBや正式な認証は含みません。
+- index.html
+- styles.css
+- app.js
+- manifest.webmanifest
+- sw.js
+- icon-192.svg
+- icon-512.svg
+
+通常は次回のオンライン起動時に新UIへ自動更新されます。
+
+## 重要
+PWAの仕様上、端末やOSの状態によってService Workerの更新確認タイミングに多少差があります。ただしこの版では、オンライン起動時にアプリ自身が更新確認を行うため、以前のキャッシュ優先版より大幅に更新が反映されやすくなっています。
