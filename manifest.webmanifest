@@ -1,0 +1,16 @@
+{
+  "name": "KINTAI Mobile Demo",
+  "short_name": "KINTAI DEMO",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0f6fff",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
